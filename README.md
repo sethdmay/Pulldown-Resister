@@ -13,9 +13,21 @@ raise their mask
 ## Visual Story
 
 ## Components Used
-
+| Component                                        | Function                       | Link                                  |
+|--------------------------------------------------|--------------------------------|---------------------------------------|
+| Adafruit Feather M4 Express - Featuring ATSAMD51 | Microcontroller/The Brain      | https://www.adafruit.com/product/3857 |
+| Adafruit AMG8833 IR Thermal Camera Breakout      | Temperature Sensor             | https://www.adafruit.com/product/3538 |
+| Adafruit LTR390 UV Light Sensor                  | UV Light Sensor                | https://www.adafruit.com/product/4831 |
+| Micro Servo - MG90D High Torque Metal Gear       | Actuation of Mask              | https://www.adafruit.com/product/1143 |
+| Adafruit Wii Nunchuck Breakout Adapter           | Interface Nunchuck with Device | https://www.adafruit.com/product/4836 |
+| Wii Nunchuck                                     | Manual Control                 | Many sources exist                    |
+| Many 3D Printed Parts (Translucent Blue PLA)     | Structure                      | See CAD Folder for STEP files         |
 ## Implementation
-
+There are 2 main parts of the device: the mask actuator and the sensor housing. The mask actuator consists of a non-moving back piece, which attaches to the moving front piece via 2 hinges. Each side has a different hinge, since 1 of them accommodates the servo.
+The front piece can be attached to the joints via tape or glue, and the motor can be attached to the join similarly. The joint
+with the motor fits into the back piece as more of an interference fit to ease removal of the whole device from the head. The sensor housing consists of a main box with a cover. The box has space to hold a breadboard with all the components and sensors, shown below.
+There are also cutouts to accomodate a Micro USB cable for the Feather M4 and the Nunchuck plug. At one end of the box there are
+holes for string, a chain, or some other necklace-type item to wear the box.
 ## Pictures
 
 ## Post Mortem
