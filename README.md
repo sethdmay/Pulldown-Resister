@@ -25,7 +25,7 @@ The general visual story can be found [in the images folder](images/visualstory.
 | Micro Servo - MG90D High Torque Metal Gear       | Actuation of Mask              | https://www.adafruit.com/product/1143 |
 | Adafruit Wii Nunchuck Breakout Adapter           | Interface Nunchuck with Device | https://www.adafruit.com/product/4836 |
 | Wii Nunchuck                                     | Manual Control                 | Many sources exist                    |
-| Many 3D Printed Parts (Translucent Blue PLA)     | Structure                      | See CAD Folder for STEP files         |
+| Many 3D Printed Parts (Translucent Blue PLA)     | Structure                      | [See CAD Folder for STEP files](CAD)  |
 
 ## Implementation
 

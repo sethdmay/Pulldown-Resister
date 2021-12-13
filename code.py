@@ -10,10 +10,10 @@ import adafruit_amg88xx
 import adafruit_ltr390
 import neopixel
 
-UPPER = 0.095
-LOWER = 0.05
-UV_THRES = 0.1
-DIST_THRES = 7600
+UPPER = 0.095      # lowers the mask
+LOWER = 0.05       # raises the mask (yes I know it's confusing)
+UV_THRES = 0.1     # accounts for "noise" inside
+DIST_THRES = 7600  # approx 6 ft
 
 
 amg = adafruit_amg88xx.AMG88XX(board.I2C())
@@ -58,16 +58,23 @@ def ranger(dist):
     return out
 
 # motor
+inside = False
 duty_cycle = UPPER
 
-# temp
+# UV light
 cycles = 0
-running_average = [0,0,0,0,0]
 
+# temp
+running_average = [0,0,0,0,0]
+warm = False
+
+# distance
 state_buffer = 0
 detect = False
 
+
 while True:
+    ### NUNCHUCK
     # x, y = nc.joystick
 
     # incr = simpleio.map_range(y, 255, 1, -0.002, 0.002)
@@ -83,33 +90,36 @@ while True:
     # elif nc.buttons.Z:
     #     duty_cycle = LOWER
 
-    # if detect:
-    #     # we think theres a person
-    #     if ultra.value > DIST_THRES:
-    #         state_buffer += 1
-    #         if state_buffer >= 8:
-    #             detect = False
-    #             state_buffer = 0
-    #             # kit.servo[0].angle = 90
-    #     else:
-    #         state_buffer = max(0,state_buffer-1)
-    # else:
-    #     # currently no one nearby
-    #     if ultra.value < DIST_THRES:
-    #         state_buffer += 1
-    #         if state_buffer >= 8:
-    #             detect = True
-    #             state_buffer = 0
-    #             # kit.servo[0].angle = 0
-    #     else:
-    #         state_buffer = max(0,state_buffer-1)
+    ### DISTANCE SENSOR
+    if detect:
+        # we think theres a person
+        if ultra.value > DIST_THRES:
+            state_buffer += 1
+            if state_buffer >= 8:
+                detect = False
+                state_buffer = 0
+                # kit.servo[0].angle = 90
+        else:
+            state_buffer = max(0,state_buffer-1)
+    else:
+        # currently no one nearby
+        if ultra.value < DIST_THRES:
+            state_buffer += 1
+            if state_buffer >= 8:
+                detect = True
+                state_buffer = 0
+                # kit.servo[0].angle = 0
+        else:
+            state_buffer = max(0,state_buffer-1)
+
+    ### UV SENSOR
 
     uv = ltr.uvs
-    if duty_cycle == UPPER:
+    if not inside:
         if uv <= UV_THRES:
             cycles += 1
             if cycles > 8:
-                duty_cycle = LOWER
+                inside = True
                 cycles = 0
         else:
             cycles = 0
@@ -117,43 +127,50 @@ while True:
         if uv >= UV_THRES:
             cycles += 1
             if cycles > 8:
-                duty_cycle = UPPER
+                inside = False
                 cycles = 0
         else:
             cycles = 0
 
     print(uv)
 
-    # if cycles > 8:
-    #     duty_cycle = LOWER
+    ### IR TEMP SENSOR
+    running_average = running_average[1:5]
+    running_average.append(top_5_avg(amg.pixels))
+    print(running_average)
 
+    if sum(running_average)/5 < 21.5:
+        # nothing warm there
+        warm = False
+    else:
+        warm = True
+
+    if inside:
+        # Raise mask on inside
+        duty_cycle = LOWER
+    elif warm and detect:
+        # theres something nearby that's warm, raise the mask
+        duty_cycle = LOWER
+    else:
+        # we're outside, there's nothing warm AND near, lower the mask
+        # TODO: gate this so normal operation doesn't lower mask
+        duty_cycle = UPPER
+
+    # some nice lighing stuff that shines green when mask should be down, red when up
+    if duty_cycle == LOWER:
+        npix.fill(0xFF0000)
+    else:
+        npix.fill(0x00FF00)
+
+    ### MOTOR
 
     mtr.duty_cycle = map_duty(duty_cycle)
     print(mtr.duty_cycle, " --- dc: ", duty_cycle)
 
 
 
-    # running_average = running_average[1:5]
-    # running_average.append(top_5_avg(amg.pixels))
-    # print(running_average)
-
-    # if sum(running_average)/5 < 21.5:
-    #     npix.fill(0x00FF00)
-    # else:
-    #     npix.fill(0xFF0000)
-
-    if duty_cycle == LOWER:
-        npix.fill(0xFF0000)
-    else:
-        npix.fill(0x00FF00)
-
-    print
-
-    # npix.brightness = min(1.0, max(0.01,1.0 - (ultra.value/8800)))
-
-
     print("**" if detect else "  ", ultra.value, ranger(ultra.value))
-    time.sleep(0.05)
+    time.sleep(0.05) # 20 Hz is the max rate of the distance sensor
 
 
 
